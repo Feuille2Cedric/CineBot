@@ -227,17 +227,17 @@ async def sp(ctx):
     now = datetime.datetime.now()
     daily = weekly = monthly = total = correct = total_questions = 0
     for day_str, data in scores.get(user_id, {}).items():
-    day_num = int(day_str)
-    day_date = day_to_date(day_num)
-    if day_date == now.date():
-        daily += data["score"]
-    if day_date.isocalendar()[1] == now.isocalendar()[1] and day_date.year == now.year:
-        weekly += data["score"]
-    if day_date.month == now.month and day_date.year == now.year:
-        monthly += data["score"]
-    total += data["score"]
-    correct += data["score"]
-    total_questions += QUESTIONS_PAR_JOUR  # On ajoute 5 questions pour chaque jour joué
+        day_num = int(day_str)
+        day_date = day_to_date(day_num)
+        if day_date == now.date():
+            daily += data["score"]
+        if day_date.isocalendar()[1] == now.isocalendar()[1] and day_date.year == now.year:
+            weekly += data["score"]
+        if day_date.month == now.month and day_date.year == now.year:
+            monthly += data["score"]
+        total += data["score"]
+        correct += data["score"]
+        total_questions += QUESTIONS_PAR_JOUR  # On ajoute 5 questions pour chaque jour joué
     precision = (correct / total_questions * 100) if total_questions else 0
     leaderboard = []
     for uid, days in scores.items():
