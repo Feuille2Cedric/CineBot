@@ -303,6 +303,8 @@ async def before_daily_questions():
     target = now.replace(hour=HOUR_QUESTIONS_DAILY, minute=MINUTE_QUESTIONS_DAILY, second=0, microsecond=0)
     if target < now:
         target += datetime.timedelta(days=1)
-    await asyncio.sleep((target - now).total_seconds())
+    wait_seconds = (target - now).total_seconds()
+    print(f"[DEBUG] Attente de {wait_seconds:.0f} secondes avant le prochain quiz quotidien ({target})")
+    await asyncio.sleep(wait_seconds)
 
 bot.run(DISCORD_TOKEN)
