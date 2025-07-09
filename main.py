@@ -12,7 +12,9 @@ intents.reactions = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN").strip("'\"")
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+if DISCORD_TOKEN:
+    DISCORD_TOKEN = DISCORD_TOKEN.strip('\'" ')
 print("DISCORD_TOKEN:", repr(DISCORD_TOKEN))
 bot.run(DISCORD_TOKEN)
 
