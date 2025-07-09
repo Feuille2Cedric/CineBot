@@ -85,7 +85,6 @@ async def get_jour_message(day):
 
 async def get_scores():
     rows = await bot.db.fetch("SELECT * FROM scores_daily")
-    # On retourne sous forme de dict imbriqué comme avant
     scores = {}
     for row in rows:
         uid = str(row['user_id'])
@@ -111,6 +110,7 @@ def day_to_date(day_num):
     return QUIZ_START_DATE + datetime.timedelta(days=day_num-1)
 
 # --- Commandes et events adaptés ---
+
 @bot.command()
 async def propose(ctx, *, question_et_reponse: str):
     if ctx.channel.id != PROPOSAL_CHANNEL_ID:
@@ -120,8 +120,32 @@ async def propose(ctx, *, question_et_reponse: str):
         await ctx.send("Format attendu : question | réponse")
         return
     question, reponse = [part.strip() for part in question_et_reponse.split("|", 1)]
-    await save_question(question, reponse)
-    await ctx.send(f"Proposition de question ajoutée : {question}\nRéponse : ||{reponse}||")
+    msg = await ctx.send(f"Proposition de question : {question}\nRéponse : ||{reponse}||\n\nAjoutez ✅ pour valider !")
+    await msg.add_reaction('✅')
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    if user.bot:
+        return
+
+    # Validation des propositions dans le salon de propositions
+    if reaction.message.channel.id == PROPOSAL_CHANNEL_ID and str(reaction.emoji) == '✅':
+        # On vérifie le nombre de réactions
+        if reaction.count >= CHECKS_REQUIRED:
+            content = reaction.message.content
+            if "Proposition de question :" in content and "Réponse :" in content:
+                question = content.split("Proposition de question :")[1].split("\n")[0].strip()
+                reponse = content.split("Réponse :")[1].split("||")[1].strip()
+                # Vérifie si la question existe déjà
+                rows = await bot.db.fetch("SELECT 1 FROM questions WHERE question = $1", question)
+                if not rows:
+                    await save_question(question, reponse)
+                    validated_channel = bot.get_channel(VALIDATED_CHANNEL_ID)
+                    if validated_channel:
+                        await validated_channel.send(f"Question validée : {question}\nRéponse : ||{reponse}||")
+                    await reaction.message.channel.send("Question ajoutée à la base de données !")
+                else:
+                    await reaction.message.channel.send("Cette question existe déjà dans la base de données.")
 
 @bot.command()
 async def q(ctx):
@@ -177,7 +201,38 @@ async def sp(ctx):
         embed.set_footer(text=f"Tu es classé #{rank} total avec {total} points !")
     await ctx.send(embed=embed)
 
-# ... (adapte les autres commandes/events de la même façon !)
+@bot.command()
+async def sr(ctx):
+    now = datetime.datetime.now()
+    rows = await bot.db.fetch("SELECT user_id, day, score FROM scores_daily")
+    current_week = now.isocalendar()[1]
+    current_year = now.year
+    leaderboard = {}
+    for row in rows:
+        day_date = QUIZ_START_DATE + datetime.timedelta(days=row['day'] - 1)
+        if day_date.isocalendar()[1] == current_week and day_date.year == current_year:
+            uid = str(row['user_id'])
+            leaderboard[uid] = leaderboard.get(uid, 0) + row['score']
+    sorted_lb = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+    embed = discord.Embed(
+        title="🏆 Classement Weekly 🏆",
+        color=discord.Color.gold()
+    )
+    classement = ""
+    for i, (uid, score) in enumerate(sorted_lb[:20], 1):
+        try:
+            user = await bot.fetch_user(int(uid))
+            name = user.name
+        except Exception:
+            name = f"Utilisateur {uid}"
+        classement += f"**{i}**. {name} — **{score}**\n"
+    embed.description = classement
+    user_id = str(ctx.author.id)
+    user_rank = next((i+1 for i, v in enumerate(sorted_lb) if v[0] == user_id), None)
+    user_score = leaderboard.get(user_id, 0)
+    if user_rank:
+        embed.set_footer(text=f"{ctx.author.name} est classé #{user_rank} avec {user_score} points !")
+    await ctx.send(embed=embed)
 
 @tasks.loop(hours=24)
 async def daily_questions():
