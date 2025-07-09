@@ -124,19 +124,60 @@ async def propose(ctx, *, question_et_reponse: str):
     await msg.add_reaction('✅')
 
 @bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    if message.channel.id == PROPOSAL_CHANNEL_ID:
+        content = message.content.strip()
+        if content.startswith("Q:") and "R:" in content:
+            try:
+                question = content.split("Q:")[1].split("R:")[0].strip()
+                reponse = content.split("R:")[1].strip()
+                if not is_spoiler(reponse):
+                    await message.channel.send(
+                        f"❌ Merci de mettre la réponse en spoiler Discord, par exemple : `R: ||ma réponse||`"
+                    )
+                    return
+                await message.add_reaction('✅')
+            except Exception:
+                pass
+
+    await bot.process_commands(message)
+
+@bot.event
 async def on_reaction_add(reaction, user):
     if user.bot:
         return
 
     # Validation des propositions dans le salon de propositions
     if reaction.message.channel.id == PROPOSAL_CHANNEL_ID and str(reaction.emoji) == '✅':
-        # On vérifie le nombre de réactions
         if reaction.count >= CHECKS_REQUIRED:
             content = reaction.message.content
-            if "Proposition de question :" in content and "Réponse :" in content:
+            # Cas du format Q: ... R: ...
+            if content.startswith("Q:") and "R:" in content:
+                question = content.split("Q:")[1].split("R:")[0].strip()
+                reponse = content.split("R:")[1].strip()
+                if not is_spoiler(reponse):
+                    await reaction.message.channel.send(
+                        f"❌ Merci de mettre la réponse en spoiler Discord, par exemple : `R: ||ma réponse||`"
+                    )
+                    return
+                if not question.endswith("?"):
+                    question += " ?"
+                answer_text = reponse[2:-2].strip()
+                rows = await bot.db.fetch("SELECT 1 FROM questions WHERE question = $1", question)
+                if not rows:
+                    await save_question(question, answer_text)
+                    await reaction.message.channel.send(
+                        f"✅ Nouvelle question ajoutée à la base !\n**Q:** {question}\n**R:** ||{answer_text}||"
+                    )
+                else:
+                    await reaction.message.channel.send("Cette question existe déjà dans la base de données.")
+            # Cas du format "Proposition de question : ... Réponse : ||...||"
+            elif "Proposition de question :" in content and "Réponse :" in content:
                 question = content.split("Proposition de question :")[1].split("\n")[0].strip()
                 reponse = content.split("Réponse :")[1].split("||")[1].strip()
-                # Vérifie si la question existe déjà
                 rows = await bot.db.fetch("SELECT 1 FROM questions WHERE question = $1", question)
                 if not rows:
                     await save_question(question, reponse)
