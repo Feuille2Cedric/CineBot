@@ -305,7 +305,7 @@ async def sr(ctx):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def helper(ctx):
+async def aide(ctx):
     embed = discord.Embed(
         title="Aide du bot Quiz Cinéma",
         color=discord.Color.green()
