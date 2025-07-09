@@ -150,7 +150,7 @@ async def on_reaction_add(reaction, user):
     if user.bot:
         return
 
-    # Validation des propositions dans le salon de propositions
+    # --- Validation des propositions de questions ---
     if reaction.message.channel.id == PROPOSAL_CHANNEL_ID and str(reaction.emoji) == '✅':
         if reaction.count >= CHECKS_REQUIRED:
             content = reaction.message.content
@@ -187,6 +187,23 @@ async def on_reaction_add(reaction, user):
                     await reaction.message.channel.send("Question ajoutée à la base de données !")
                 else:
                     await reaction.message.channel.send("Cette question existe déjà dans la base de données.")
+
+    # --- Enregistrement des scores du quiz quotidien ---
+    if reaction.message.channel.id == VALIDATED_CHANNEL_ID:
+        if reaction.message.content.startswith("@everyone Indiquez votre score"):
+            emoji_to_score = {
+                '0️⃣': 0,
+                '1️⃣': 1,
+                '2️⃣': 2,
+                '3️⃣': 3,
+                '4️⃣': 4,
+                '5️⃣': 5,
+            }
+            if str(reaction.emoji) in emoji_to_score:
+                score = emoji_to_score[str(reaction.emoji)]
+                day = await get_day_count()
+                await save_score(user.id, day, 1, score, [])
+                print(f"[DEBUG] Score enregistré : user={user.id}, day={day}, score={score}")
 
 @bot.command()
 async def q(ctx):
