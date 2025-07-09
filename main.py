@@ -6,6 +6,7 @@ import random
 import asyncio
 import datetime
 import json
+import re
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -60,6 +61,15 @@ async def on_ready():
 
 def is_spoiler(text):
     return text.startswith("||") and text.endswith("||")
+
+def extract_question_reponse(content):
+    # Accepte Q: ou Q : et R: ou R :
+    match = re.search(r'Q\s*:\s*(.+?)R\s*:\s*(.+)', content, re.DOTALL | re.IGNORECASE)
+    if match:
+        question = match.group(1).strip()
+        reponse = match.group(2).strip()
+        return question, reponse
+    return None, None
 
 async def get_questions():
     return await bot.db.fetch("SELECT id, question, answer FROM questions")
@@ -132,10 +142,9 @@ async def on_message(message):
 
     if message.channel.id == PROPOSAL_CHANNEL_ID:
         content = message.content.strip()
-        if content.startswith("Q:") and "R:" in content:
+        question, reponse = extract_question_reponse(content)
+        if question and reponse:
             try:
-                question = content.split("Q:")[1].split("R:")[0].strip()
-                reponse = content.split("R:")[1].strip()
                 if not is_spoiler(reponse):
                     await message.channel.send(
                         f"❌ Merci de mettre la réponse en spoiler Discord, par exemple : `R: ||ma réponse||`"
@@ -154,12 +163,13 @@ async def on_reaction_add(reaction, user):
 
     # --- Validation des propositions de questions ---
     if reaction.message.channel.id == PROPOSAL_CHANNEL_ID and str(reaction.emoji) == '✅':
-        if reaction.count >= CHECKS_REQUIRED:
+        # On compte le nombre d'utilisateurs uniques (hors bot) ayant mis ✅
+        users = [u async for u in reaction.users() if not u.bot]
+        if len(users) == 2:  # Ajout à la 2e validation uniquement
             content = reaction.message.content
-            # Cas du format Q: ... R: ...
-            if content.startswith("Q:") and "R:" in content:
-                question = content.split("Q:")[1].split("R:")[0].strip()
-                reponse = content.split("R:")[1].strip()
+            # Cas du format Q: ... R: ... (tous formats)
+            question, reponse = extract_question_reponse(content)
+            if question and reponse:
                 if not is_spoiler(reponse):
                     await reaction.message.channel.send(
                         f"❌ Merci de mettre la réponse en spoiler Discord, par exemple : `R: ||ma réponse||`"
@@ -292,6 +302,39 @@ async def sr(ctx):
     user_score = leaderboard.get(user_id, 0)
     if user_rank:
         embed.set_footer(text=f"{ctx.author.name} est classé #{user_rank} avec {user_score} points !")
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def help(ctx):
+    embed = discord.Embed(
+        title="Aide du bot Quiz Cinéma",
+        color=discord.Color.green()
+    )
+    embed.add_field(
+        name="!q",
+        value="Affiche une question cinéma aléatoire.",
+        inline=False
+    )
+    embed.add_field(
+        name="!sp",
+        value="Affiche ton profil et tes statistiques.",
+        inline=False
+    )
+    embed.add_field(
+        name="!sr",
+        value="Affiche le classement hebdomadaire.",
+        inline=False
+    )
+    embed.add_field(
+        name="!propose question | réponse",
+        value="Propose une nouvelle question (ou utilise le format Q: ... R: ... ou Q : ... R : ...).",
+        inline=False
+    )
+    embed.add_field(
+        name="Quiz quotidien",
+        value="Réagis avec l’emoji correspondant à ton score sous le message du quiz pour enregistrer tes points.",
+        inline=False
+    )
     await ctx.send(embed=embed)
 
 @tasks.loop(hours=24)
