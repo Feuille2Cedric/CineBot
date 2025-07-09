@@ -6,7 +6,7 @@ import os
 import asyncio
 import datetime
 
-DISCORD_TOKEN = 'MTM5MjE4MTM0OTAyNDAxMDI5MQ.GoIqgB.jTkzH-t0_6F_qVvgibiTjQwzDhbiNzC4msxIt4'
+DISCORD_TOKEN = 'MTM5MjE4MTM0OTAyNDAxMDI5MQ.GxS-fk.vJXT-KXwl5tf2LK5nBoim57Hp6eLweZts6EH3w'
 
 intents = discord.Intents.default()
 intents.message_content = True
