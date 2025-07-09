@@ -6,22 +6,24 @@ import os
 import asyncio
 import datetime
 
-DISCORD_TOKEN = 'MTM5MjE4MTM0OTAyNDAxMDI5MQ.GxS-fk.vJXT-KXwl5tf2LK5nBoim57Hp6eLweZts6EH3w'
-
 intents = discord.Intents.default()
 intents.message_content = True
 intents.reactions = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+bot.run(DISCORD_TOKEN)
+
 QUESTIONS_FILE = 'questions.json'
 DAILY_SCORES_FILE = 'scores_daily.json'
 DAY_COUNT_FILE = 'day_count.json'
 MESSAGES_JOUR_FILE = 'messages_jour.json'
 
-PROPOSAL_CHANNEL_ID = 1392186579212173412
-VALIDATED_CHANNEL_ID = 1392184673953648680
-COMMANDS_CHANNEL_ID = 1392190406749589524
+PROPOSAL_CHANNEL_ID = os.getenv("PROPOSAL_CHANNEL_ID")
+VALIDATED_CHANNEL_ID = os.getenv("VALIDATED_CHANNEL_ID")
+COMMANDS_CHANNEL_ID = os.getenv("COMMANDS_CHANNEL_ID")
+bot.run(PROPOSAL_CHANNEL_ID, VALIDATED_CHANNEL_ID, COMMANDS_CHANNEL_ID)
 
 HOUR_QUESTIONS_DAILY = 19
 MINUTE_QUESTIONS_DAILY = 42
