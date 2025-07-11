@@ -165,7 +165,7 @@ async def on_reaction_add(reaction, user):
     if reaction.message.channel.id == PROPOSAL_CHANNEL_ID and str(reaction.emoji) == '✅':
         # On compte le nombre d'utilisateurs uniques (hors bot) ayant mis ✅
         users = [u async for u in reaction.users() if not u.bot]
-        if len(users) == 2:  # Ajout à la 2e validation uniquement
+        if len(users) == CHECKS_REQUIRED:  # Ajout à la 2e validation uniquement
             content = reaction.message.content
             # Cas du format Q: ... R: ... (tous formats)
             question, reponse = extract_question_reponse(content)
