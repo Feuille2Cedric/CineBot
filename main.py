@@ -272,22 +272,31 @@ async def sp(ctx):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def sr(ctx):
+async def sr(ctx, mode: str = "weekly"):
     now = datetime.datetime.now()
-    rows = await bot.db.fetch("SELECT user_id, day, score FROM scores_daily")
-    current_week = now.isocalendar()[1]
-    current_year = now.year
+    
+    embed = discord.Embed()
     leaderboard = {}
-    for row in rows:
-        day_date = QUIZ_START_DATE + datetime.timedelta(days=row['day'] - 1)
-        if day_date.isocalendar()[1] == current_week and day_date.year == current_year:
-            uid = str(row['user_id'])
-            leaderboard[uid] = leaderboard.get(uid, 0) + row['score']
+    rows = await bot.db.fetch("SELECT user_id, day, score FROM scores_daily")
+
+    if mode.lower() == "alltime":
+        for row in rows:
+            uid = str(row["user_id"])
+            leaderboard[uid] = leaderboard.get(uid, 0) + row["score"]
+        embed.title = "🏅 Classement Global – Tous Temps"
+        embed.color = discord.Color.purple()
+    else:
+        current_week = now.isocalendar()[1]
+        current_year = now.year
+        for row in rows:
+            day_date = QUIZ_START_DATE + datetime.timedelta(days=row["day"] - 1)
+            if day_date.isocalendar()[1] == current_week and day_date.year == current_year:
+                uid = str(row["user_id"])
+                leaderboard[uid] = leaderboard.get(uid, 0) + row["score"]
+        embed.title = "🏆 Classement Weekly 🏆"
+        embed.color = discord.Color.gold()
+
     sorted_lb = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
-    embed = discord.Embed(
-        title="🏆 Classement Weekly 🏆",
-        color=discord.Color.gold()
-    )
     classement = ""
     for i, (uid, score) in enumerate(sorted_lb[:20], 1):
         try:
@@ -295,13 +304,17 @@ async def sr(ctx):
             name = user.name
         except Exception:
             name = f"Utilisateur {uid}"
-        classement += f"**{i}**. {name} — **{score}**\n"
+        classement += f"**{i}**. {name} — **{score} points**\n"
+
     embed.description = classement
+
     user_id = str(ctx.author.id)
     user_rank = next((i+1 for i, v in enumerate(sorted_lb) if v[0] == user_id), None)
     user_score = leaderboard.get(user_id, 0)
+
     if user_rank:
-        embed.set_footer(text=f"{ctx.author.name} est classé #{user_rank} avec {user_score} points !")
+        suffix = "cette semaine" if mode != "alltime" else "au total"
+        embed.set_footer(text=f"{ctx.author.name} est classé #{user_rank} {suffix} avec {user_score} points.")
     await ctx.send(embed=embed)
 
 @bot.command()
