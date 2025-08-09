@@ -21,9 +21,17 @@ VALIDATED_CHANNEL_ID = int(os.getenv("VALIDATED_CHANNEL_ID"))
 COMMANDS_CHANNEL_ID = int(os.getenv("COMMANDS_CHANNEL_ID"))
 UPDATE_CHANNEL_ID = int(os.getenv("UPDATE_CHANNEL_ID"))
 
+# Récup brut
 raw_quiz_role_id = os.getenv("QUIZ_ROLE_ID", "")
-clean_quiz_role_id = raw_quiz_role_id.strip().lstrip("=")  # enlève aussi le '=' au début s’il y est
+print(f"[DEBUG] Valeur brute QUIZ_ROLE_ID depuis env : '{raw_quiz_role_id}'")
+
+# Nettoyage (supprime espaces + un éventuel '=' au début)
+clean_quiz_role_id = raw_quiz_role_id.strip().lstrip("=")
+print(f"[DEBUG] Valeur nettoyée QUIZ_ROLE_ID : '{clean_quiz_role_id}'")
+
+# Conversion en int
 QUIZ_ROLE_ID = int(clean_quiz_role_id)
+print(f"[DEBUG] QUIZ_ROLE_ID en int = {QUIZ_ROLE_ID}")
 
 HOUR_QUESTIONS_DAILY = int(os.getenv("HOUR_QUESTIONS_DAILY"))
 MINUTE_QUESTIONS_DAILY = int(os.getenv("MINUTE_QUESTIONS_DAILY"))
@@ -370,6 +378,7 @@ async def annonce_nouveautes(ctx):
         return
 
     quiz_role_mention = f"<@&QUIZ_ROLE_ID>"  # Idem pour ton rôle @QUIZ
+    print(f"[DEBUG] Mention finale envoyée : {quiz_role_mention}")
     embed = discord.Embed(
         title="📢 Mise à jour du Bot Quiz Cinéma",
         description="De nouvelles fonctionnalités viennent d’arriver pour améliorer votre expérience ! 🎬🍿",
