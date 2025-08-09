@@ -377,7 +377,7 @@ async def annonce_nouveautes(ctx):
         await ctx.send("Cette commande ne peut être utilisée que dans le fil dédié.")
         return
 
-    quiz_role_mention = f"<@&QUIZ_ROLE_ID>"  # Idem pour ton rôle @QUIZ
+    quiz_role_mention = f"<@&{QUIZ_ROLE_ID}>"  # Idem pour ton rôle @QUIZ
     print(f"[DEBUG] Mention finale envoyée : {quiz_role_mention}")
     embed = discord.Embed(
         title="📢 Mise à jour du Bot Quiz Cinéma",
