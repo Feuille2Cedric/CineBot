@@ -411,6 +411,9 @@ async def annonce_nouveautes(ctx):
     )
     embed.set_footer(text="Amusez-vous bien et merci pour votre participation !")
 
+    # 1️⃣ Ping dans un message classique
+    await ctx.send(quiz_role_mention)
+    # 2️⃣ Envoi de l’embed
     await ctx.send(embed=embed)
 
 @bot.command()
