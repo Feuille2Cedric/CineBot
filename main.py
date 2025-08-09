@@ -313,7 +313,10 @@ async def sr(ctx, mode: str = "weekly"):
     leaderboard = {}
     rows = await bot.db.fetch("SELECT user_id, day, score FROM scores_daily")
 
-    if mode.lower().replace(" ", "") == "alltime":
+    # Normalisation du mode pour supporter "alltime" et "all time"
+    mode_clean = mode.lower().replace(" ", "")
+
+    if mode_clean == "alltime":
         for row in rows:
             uid = str(row["user_id"])
             leaderboard[uid] = leaderboard.get(uid, 0) + row["score"]
@@ -347,8 +350,9 @@ async def sr(ctx, mode: str = "weekly"):
     user_score = leaderboard.get(user_id, 0)
 
     if user_rank:
-        suffix = "cette semaine" if mode != "alltime" else "au total"
+        suffix = "au total" if mode_clean == "alltime" else "cette semaine"
         embed.set_footer(text=f"{ctx.author.name} est classé #{user_rank} {suffix} avec {user_score} points.")
+    
     await ctx.send(embed=embed)
 
 @bot.command()
