@@ -306,23 +306,24 @@ async def sp(ctx):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def sr(ctx, mode: str = "weekly"):
+async def sr(ctx, *, mode: str = "weekly"):  # ← astérisque pour capturer toute la chaîne
     now = datetime.datetime.now()
-    
     embed = discord.Embed()
     leaderboard = {}
     rows = await bot.db.fetch("SELECT user_id, day, score FROM scores_daily")
 
-    # Normalisation du mode pour supporter "alltime" et "all time"
+    # normalisation : minuscules + suppression des espaces
     mode_clean = mode.lower().replace(" ", "")
 
     if mode_clean == "alltime":
+        # ------- CLASSEMENT TOUS LES TEMPS -------
         for row in rows:
             uid = str(row["user_id"])
             leaderboard[uid] = leaderboard.get(uid, 0) + row["score"]
         embed.title = "🏅 Classement Global – Tous Temps"
         embed.color = discord.Color.purple()
     else:
+        # ------- CLASSEMENT HEBDOMADAIRE -------
         current_week = now.isocalendar()[1]
         current_year = now.year
         for row in rows:
@@ -333,6 +334,7 @@ async def sr(ctx, mode: str = "weekly"):
         embed.title = "🏆 Classement Weekly 🏆"
         embed.color = discord.Color.gold()
 
+    # tri et affichage
     sorted_lb = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
     classement = ""
     for i, (uid, score) in enumerate(sorted_lb[:20], 1):
@@ -345,6 +347,7 @@ async def sr(ctx, mode: str = "weekly"):
 
     embed.description = classement
 
+    # footer position dans le classement
     user_id = str(ctx.author.id)
     user_rank = next((i+1 for i, v in enumerate(sorted_lb) if v[0] == user_id), None)
     user_score = leaderboard.get(user_id, 0)
@@ -352,7 +355,7 @@ async def sr(ctx, mode: str = "weekly"):
     if user_rank:
         suffix = "au total" if mode_clean == "alltime" else "cette semaine"
         embed.set_footer(text=f"{ctx.author.name} est classé #{user_rank} {suffix} avec {user_score} points.")
-    
+
     await ctx.send(embed=embed)
 
 @bot.command()
