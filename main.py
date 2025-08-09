@@ -55,6 +55,9 @@ async def on_ready():
         day INTEGER PRIMARY KEY,
         message TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS used_questions (
+        question_id INTEGER PRIMARY KEY
+    );
     """)
     if not daily_questions.is_running():
         daily_questions.start()
@@ -94,6 +97,22 @@ async def get_jour_message(day):
     if row:
         return row['message']
     return f"🎬 Jour {day} du quiz cinéma !"
+
+async def get_unused_questions():
+    return await bot.db.fetch("""
+        SELECT id, question, answer
+        FROM questions
+        WHERE id NOT IN (SELECT question_id FROM used_questions)
+    """)
+
+async def mark_questions_used(question_ids):
+    for qid in question_ids:
+        await bot.db.execute(
+            "INSERT INTO used_questions (question_id) VALUES ($1) ON CONFLICT DO NOTHING", qid
+        )
+
+async def reset_used_questions():
+    await bot.db.execute("TRUNCATE used_questions")
 
 async def get_scores():
     rows = await bot.db.fetch("SELECT * FROM scores_daily")
@@ -160,6 +179,20 @@ async def on_message(message):
 async def on_reaction_add(reaction, user):
     if user.bot:
         return
+
+    # --- Suppression de question via 🚮 ---
+    if str(reaction.emoji) == '🚮':
+        try:
+            users = [u async for u in reaction.users() if not u.bot]
+            if len(users) >= 6:  # 5 votes utilisateurs + 1 ajout bot
+                content = reaction.message.content
+                match = re.search(r"\*\*Question :\*\* (.+?)\n\|\|", content, re.DOTALL)
+                if match:
+                    question_text = match.group(1).strip()
+                    await bot.db.execute("DELETE FROM questions WHERE question = $1", question_text)
+                    await reaction.message.channel.send(f"🗑️ La question « {question_text} » a été supprimée après signalement.")
+        except Exception as e:
+            print(f"Erreur suppression via 🚮 : {e}")
 
     # --- Validation des propositions de questions ---
     if reaction.message.channel.id == PROPOSAL_CHANNEL_ID and str(reaction.emoji) == '✅':
@@ -229,6 +262,7 @@ async def q(ctx):
     msg = await ctx.send(f"**Question :** {row['question']}\n||{row['answer']}||")
     await msg.add_reaction('✅')
     await msg.add_reaction('❌')
+    await msg.add_reaction('🚮')
 
 @bot.command()
 async def sp(ctx):
@@ -279,7 +313,7 @@ async def sr(ctx, mode: str = "weekly"):
     leaderboard = {}
     rows = await bot.db.fetch("SELECT user_id, day, score FROM scores_daily")
 
-    if mode.lower() == "alltime":
+    if mode.lower().replace(" ", "") == "alltime":
         for row in rows:
             uid = str(row["user_id"])
             leaderboard[uid] = leaderboard.get(uid, 0) + row["score"]
@@ -354,20 +388,44 @@ async def aide(ctx):
 async def daily_questions():
     await bot.wait_until_ready()
     channel = bot.get_channel(VALIDATED_CHANNEL_ID)
-    questions = await get_questions()
-    if len(questions) < 5:
-        await channel.send("Pas assez de questions pour le quiz du jour !")
+
+    # --- DIMANCHE à 10 questions ---
+    today_weekday = datetime.datetime.now().weekday()  # 0=Lundi ... 6=Dimanche
+    nb_questions = 10 if today_weekday == 6 else QUESTIONS_PAR_JOUR
+
+    # 🔁 On récupère uniquement les questions non utilisées
+    questions = await get_unused_questions()
+
+    # Si on n'a pas assez de questions, on vide l'historique et on recharge
+    if len(questions) < nb_questions:
+        await reset_used_questions()
+        questions = await get_unused_questions()
+
+    if len(questions) < nb_questions:
+        await channel.send(f"Pas assez de questions pour le quiz du jour ({nb_questions} nécessaires) !")
         return
+
+    # Incrément du compteur de jours
     day = await get_day_count() + 1
     await set_day_count(day)
+
+    # Message d’intro
     intro_msg = await get_jour_message(day)
     await channel.send(intro_msg)
-    selected = random.sample(questions, 5)
+
+    # Sélection aléatoire de questions et marquage comme utilisées
+    selected = random.sample(questions, nb_questions)
+    await mark_questions_used([q['id'] for q in selected])
+
+    # Envoi des questions avec réactions
     for q in selected:
         msg = await channel.send(f"**Question :** {q['question']}\n||{q['answer']}||")
-        await msg.add_reaction('✅')
-        await msg.add_reaction('❌')
+        await msg.add_reaction('✅')    # bonne réponse
+        await msg.add_reaction('❌')    # mauvaise réponse
+        await msg.add_reaction('🚮')    # signalement / suppression
         await asyncio.sleep(2)
+
+    # Message pour enregistrer le score
     msg = await channel.send("@everyone Indiquez votre score du jour en réagissant ci-dessous :")
     for emoji in ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']:
         await msg.add_reaction(emoji)
