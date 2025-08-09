@@ -20,7 +20,10 @@ PROPOSAL_CHANNEL_ID = int(os.getenv("PROPOSAL_CHANNEL_ID"))
 VALIDATED_CHANNEL_ID = int(os.getenv("VALIDATED_CHANNEL_ID"))
 COMMANDS_CHANNEL_ID = int(os.getenv("COMMANDS_CHANNEL_ID"))
 UPDATE_CHANNEL_ID = int(os.getenv("UPDATE_CHANNEL_ID"))
-QUIZ_ROLE_ID = int(os.getenv("QUIZ_ROLE_ID", "").strip())
+
+raw_quiz_role_id = os.getenv("QUIZ_ROLE_ID", "")
+clean_quiz_role_id = raw_quiz_role_id.strip().lstrip("=")  # enlève aussi le '=' au début s’il y est
+QUIZ_ROLE_ID = int(clean_quiz_role_id)
 
 HOUR_QUESTIONS_DAILY = int(os.getenv("HOUR_QUESTIONS_DAILY"))
 MINUTE_QUESTIONS_DAILY = int(os.getenv("MINUTE_QUESTIONS_DAILY"))
