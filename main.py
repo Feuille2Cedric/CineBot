@@ -197,7 +197,7 @@ async def on_reaction_add(reaction, user):
     if str(reaction.emoji) == '🚮':
         try:
             users = [u async for u in reaction.users() if not u.bot]
-            if len(users) >= 6:  # 5 votes utilisateurs + 1 ajout bot
+            if len(users) >= 4:  # 3 votes utilisateurs + 1 ajout bot
                 content = reaction.message.content
                 match = re.search(r"\*\*Question :\*\* (.+?)\n\|\|", content, re.DOTALL)
                 if match:
