@@ -200,7 +200,7 @@ async def on_reaction_add(reaction, user):
             if reaction.message.channel.id in [VALIDATED_CHANNEL_ID, COMMANDS_CHANNEL_ID]:
                 users = [u async for u in reaction.users() if not u.bot]
                 print(f"[DEBUG] 🚮 votes sur {reaction.message.id} : {[u.id for u in users]}")
-                if len(users) >= 4:  # 4 votes humains
+                if len(users) >= 3:  # 4 votes humains
                     content = reaction.message.content
                     # Extraction robuste
                     match = re.search(r"\*\*Question :\*\* (.+?)\n\|\|", content, re.DOTALL)
