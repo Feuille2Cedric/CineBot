@@ -193,6 +193,20 @@ async def on_reaction_add(reaction, user):
     if user.bot:
         return
 
+    # -- GESTION MUTUELLEMENT EXCLUSIVE DES RÉACTIONS SUR CHAQUE QUESTION --
+    exclusive_emojis = ['✅', '❌', '🚮']
+    if str(reaction.emoji) in exclusive_emojis:
+        # Pour chaque autre emoji parmi les exclusifs, on retire si l'utilisateur avait réagi dessus
+        message = reaction.message
+        for react in message.reactions:
+            if (str(react.emoji) in exclusive_emojis and str(react.emoji) != str(reaction.emoji)):
+                users = await react.users().flatten()
+                if user in users:
+                    try:
+                        await message.remove_reaction(react.emoji, user)
+                    except Exception as e:
+                        print(f"Erreur retrait reaction: {e}")
+
     # --- Suppression de question via 🚮 ---
     if str(reaction.emoji) == '🚮':
         try:
