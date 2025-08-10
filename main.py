@@ -248,7 +248,7 @@ async def on_reaction_add(reaction, user):
 
     # --- Enregistrement des scores du quiz quotidien ---
     if reaction.message.channel.id == VALIDATED_CHANNEL_ID:
-        if reaction.message.content.startswith("@everyone Indiquez votre score"):
+        if reaction.message.content.startswith(f"@&{QUIZ_ROLE_ID} Indiquez votre score"):
             emoji_to_score = {
                 '0️⃣': 0,
                 '1️⃣': 1,
