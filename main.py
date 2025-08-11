@@ -200,7 +200,7 @@ async def on_reaction_add(reaction, user):
         message = reaction.message
         for react in message.reactions:
             if (str(react.emoji) in exclusive_emojis and str(react.emoji) != str(reaction.emoji)):
-                users = await react.users().flatten()
+                users = [u async for u in react.users() if not u.bot]
                 if user in users:
                     try:
                         await message.remove_reaction(react.emoji, user)
