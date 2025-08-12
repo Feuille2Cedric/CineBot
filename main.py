@@ -270,7 +270,7 @@ async def on_reaction_add(reaction, user):
 
     # --- Enregistrement des scores du quiz quotidien ---
     if reaction.message.channel.id == VALIDATED_CHANNEL_ID:
-        if reaction.message.content.startswith(f"@&{QUIZ_ROLE_ID} Indiquez votre score"):
+        if reaction.message.content.startswith(f"<@&{QUIZ_ROLE_ID}> Indiquez votre score"):
             emoji_to_score = {
                 '0️⃣': 0,
                 '1️⃣': 1,
@@ -523,7 +523,7 @@ async def daily_questions():
         await asyncio.sleep(2)          # petit délai pour éviter rats limit
 
     # 💯 Message pour enregistrer le score avec nombre d’emojis adapté au jour
-    msg = await channel.send(f"@&{QUIZ_ROLE_ID} Indiquez votre score du jour en réagissant ci-dessous :")
+    msg = await channel.send(f"<@&{QUIZ_ROLE_ID}> Indiquez votre score du jour en réagissant ci-dessous :")
 
     if today_weekday == 6:
         # Dimanche → réactions jusqu'à 10
