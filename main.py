@@ -1,3 +1,4 @@
+
 import asyncio
 import discord
 from discord.ext import commands
@@ -16,10 +17,12 @@ async def main():
     intents = discord.Intents.default()
     intents.message_content = True
     intents.members = True
+    intents.reactions = True
     bot = commands.Bot(command_prefix="!", intents=intents)
 
     pool = await init_db(cfg.DATABASE_URL, logger=logger)
 
+    # attach shared objects
     bot.cfg = cfg
     bot.db = pool
     bot.logger = logger
