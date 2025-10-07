@@ -1,0 +1,8 @@
+# Core bot & Discord
+discord.py==2.4.0
+
+# Base de données PostgreSQL async
+asyncpg==0.29.0
+
+# Utilitaires standards (déjà inclus par défaut mais explicités)
+typing-extensions>=4.9.0
