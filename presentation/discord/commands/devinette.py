@@ -26,10 +26,6 @@ class DevinetteCmd(commands.Cog):
             print(f"Films récupérés : {movies}")  # Log des films récupérés
 
             # Sélectionner 4 films aléatoires parmi ceux récupérés
-            if len(movies) < 4:
-                await ctx.send("Il n'y a pas assez de films dans la base de données pour poser la question.")
-                return
-
             selected_movies = random.sample(movies, 4)
 
             # Générer une question aléatoire
@@ -98,18 +94,15 @@ class DevinetteCmd(commands.Cog):
             for idx in range(4):
                 await msg.add_reaction(f"{idx+1}\u20e3")  # Emoji 1️⃣, 2️⃣, 3️⃣, 4️⃣
 
-            # Attendre la réponse
+            # Attendre la réponse (mais sans bloquer les autres commandes)
             def check(reaction, user):
                 return user == ctx.author and str(reaction.emoji) in ['1️⃣', '2️⃣', '3️⃣', '4️⃣']
 
+            # Attendre la réaction sans bloquer la suite
             reaction = await self.bot.wait_for('reaction_add', check=check)
 
             # Vérifier la réponse
             answer_index = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'].index(str(reaction.emoji)) + 1
-            if selected_movies[answer_index - 1]['franchise'] == correct_answer:
-                await ctx.send("Bravo, tu as trouvé la bonne réponse ! 🎉")
-            else:
-                await ctx.send(f"Dommage, la bonne réponse était : ||{correct_answer}||.")
 
         except Exception as e:
             print(f"Erreur dans la commande !devinette: {e}")
