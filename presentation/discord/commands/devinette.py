@@ -23,7 +23,7 @@ class DevinetteCmd(commands.Cog):
                 print("Aucun film récupéré depuis la base de données.")
                 return
 
-            print(f"Films récupérés : {movies}")  # Log de films récupérés
+            print(f"Films récupérés : {movies}")  # Log des films récupérés
 
             # Générer une question aléatoire
             question_type = random.choice([
@@ -67,6 +67,10 @@ class DevinetteCmd(commands.Cog):
                 
                 correct_answer = genre_movies[0]['franchise']  # On prend le premier film comme bonne réponse
                 question = f"Parmi ces films, lequel appartient au genre {genre} ?"
+
+                # Vérifier si la bonne réponse appartient au genre demandé
+                if correct_answer not in [movie['franchise'] for movie in genre_movies]:
+                    genre_movies[0] = random.choice([movie for movie in movies if movie['genre'] == genre])
 
             print(f"Question posée : {question}")  # Log de la question générée
 
