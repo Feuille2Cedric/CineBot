@@ -30,12 +30,12 @@ class QuizCog(commands.Cog, name="QuizCog"):
             content = message.content.strip()
             question, reponse = U.extract_question_reponse(content)
             if question and reponse:
+                if not U.is_spoiler(reponse):
+                    await message.channel.send(
+                        "❌ Merci de mettre la réponse en spoiler Discord, par exemple : `R: ||ma réponse||`"
+                    )
+                    return
                 try:
-                    if not U.is_spoiler(reponse):
-                        await message.channel.send(
-                            "❌ Merci de mettre la réponse en spoiler Discord, par exemple : `R: ||ma réponse||`"
-                        )
-                        return
                     await message.add_reaction('✅')
                 except Exception:
                     pass
