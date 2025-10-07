@@ -8,11 +8,11 @@ class DevinetteCmd(commands.Cog):
     @commands.command(name="devinette")
     async def devinette(self, ctx):
         try:
-            # Choisir 4 films au hasard avec leurs métadonnées
+            # Choisir 20 films au hasard avec leurs métadonnées
             query = """
             SELECT category, genre, release_date, franchise
             FROM question_metadata
-            ORDER BY RANDOM() LIMIT 20;  -- On prend plus de films pour garantir une meilleure diversité
+            ORDER BY RANDOM() LIMIT 20;
             """
             # Utiliser self.bot.pool pour interagir avec la base de données
             movies = await self.bot.pool.fetch(query)
@@ -23,7 +23,7 @@ class DevinetteCmd(commands.Cog):
                 print("Aucun film récupéré depuis la base de données.")
                 return
 
-            print(f"Films récupérés : {movies}")  # Log des films récupérés
+            print(f"Films récupérés : {movies}")  # Log de films récupérés
 
             # Générer une question aléatoire
             question_type = random.choice([
@@ -41,36 +41,34 @@ class DevinetteCmd(commands.Cog):
                 oldest_movie = min(movies, key=lambda x: x['release_date'])
                 correct_answer = oldest_movie['franchise']  # Nous pouvons comparer la franchise pour la réponse
                 question = f"Parmi ces films, lequel est le plus vieux ?"
+                genre_movies = [oldest_movie]  # Le film le plus vieux est le premier
 
             elif question_type == "newest":
                 # Trouver le film le plus récent
                 newest_movie = max(movies, key=lambda x: x['release_date'])
                 correct_answer = newest_movie['franchise']  # Nous pouvons comparer la franchise pour la réponse
                 question = f"Parmi ces films, lequel est le plus récent ?"
+                genre_movies = [newest_movie]  # Le film le plus récent est le premier
 
             elif question_type == "genre":
                 # Choisir un genre spécifique (ex: Comédie)
                 genre = random.choice(["Comédie", "Drame", "Action", "Animation", "Science-Fiction"])
 
-                # Filtrer les films par genre, mais éviter de sélectionner plusieurs films du même genre
+                # Filtrer les films par genre
                 genre_movies = [movie for movie in movies if genre in movie['genre']]
-                
+
+                # Si on a moins de 4 films du genre, ajouter des films d'autres genres
                 if len(genre_movies) < 4:
-                    # Si moins de 4 films du genre choisi, on peut prendre d'autres genres
                     remaining_movies = [movie for movie in movies if genre not in movie['genre']]
                     while len(genre_movies) < 4 and remaining_movies:
                         genre_movies.append(remaining_movies.pop())
 
-                # Sélectionner 4 films sans doublon de genre
+                # Mélanger les films pour ajouter de la diversité
                 random.shuffle(genre_movies)
-                genre_movies = genre_movies[:4]
-                
-                correct_answer = genre_movies[0]['franchise']  # On prend le premier film comme bonne réponse
-                question = f"Parmi ces films, lequel appartient au genre {genre} ?"
 
-                # Vérifier si la bonne réponse appartient au genre demandé
-                if correct_answer not in [movie['franchise'] for movie in genre_movies]:
-                    genre_movies[0] = random.choice([movie for movie in movies if movie['genre'] == genre])
+                # La bonne réponse est le premier film du genre
+                correct_answer = genre_movies[0]['franchise']
+                question = f"Parmi ces films, lequel appartient au genre {genre} ?"
 
             print(f"Question posée : {question}")  # Log de la question générée
 
