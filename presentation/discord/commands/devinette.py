@@ -12,7 +12,7 @@ class DevinetteCmd(commands.Cog):
             query = """
             SELECT category, genre, release_date, franchise
             FROM question_metadata
-            ORDER BY RANDOM() LIMIT 20;
+            ORDER BY RANDOM() LIMIT 20;  -- On prend plus de films pour garantir une meilleure diversité
             """
             # Utiliser self.bot.pool pour interagir avec la base de données
             movies = await self.bot.pool.fetch(query)
@@ -26,6 +26,10 @@ class DevinetteCmd(commands.Cog):
             print(f"Films récupérés : {movies}")  # Log des films récupérés
 
             # Sélectionner 4 films aléatoires parmi ceux récupérés
+            if len(movies) < 4:
+                await ctx.send("Il n'y a pas assez de films dans la base de données pour poser la question.")
+                return
+
             selected_movies = random.sample(movies, 4)
 
             # Générer une question aléatoire
@@ -61,6 +65,7 @@ class DevinetteCmd(commands.Cog):
 
                 # Si on a moins de 1 film du genre parmi les 4 films, on doit prendre un film de ce genre
                 if len(genre_movies) == 0:
+                    # Compléter avec des films d'autres genres
                     genre_movies = [random.choice([movie for movie in movies if genre in movie['genre']])]
                     selected_movies = random.sample([movie for movie in movies if genre in movie['genre']], 4)
 
