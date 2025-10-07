@@ -14,7 +14,8 @@ class DevinetteCmd(commands.Cog):
             FROM question_metadata
             ORDER BY RANDOM() LIMIT 4;
             """
-            movies = await self.bot.db.fetch(query)
+            # Utiliser self.bot.pool pour interagir avec la base de données
+            movies = await self.bot.pool.fetch(query)
 
             # Si aucun film n'est récupéré
             if not movies:
@@ -71,7 +72,7 @@ class DevinetteCmd(commands.Cog):
                 await ctx.send("Bravo, tu as trouvé la bonne réponse ! 🎉")
             else:
                 await ctx.send(f"Dommage, la bonne réponse était : le film **{movies[correct_answer - 1]['franchise']}**.")
-        
+
         except Exception as e:
             print(f"Erreur dans la commande !devinette: {e}")
             await ctx.send("Une erreur est survenue. Veuillez réessayer plus tard.")
