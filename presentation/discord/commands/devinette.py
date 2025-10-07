@@ -54,9 +54,6 @@ class DevinetteCmd(commands.Cog):
 
             print(f"Question posée : {question}")  # Log de la question générée
 
-            # Envoyer la réponse correcte en spoiler avant la question
-            await ctx.send(f"La réponse correcte est : ||{correct_answer}||")
-
             # Envoyer la question
             msg = await ctx.send(question)
 
@@ -83,6 +80,8 @@ class DevinetteCmd(commands.Cog):
             answer_index = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'].index(str(reaction.emoji)) + 1
             if movies[answer_index - 1]['franchise'] == correct_answer:
                 await ctx.send("Bravo, tu as trouvé la bonne réponse ! 🎉")
+                # Envoyer la réponse correcte sous forme de spoiler avant les propositions
+                await ctx.send(f"**La bonne réponse était :** ||{correct_answer}||")
             else:
                 await ctx.send(f"Dommage, la bonne réponse était : ||{correct_answer}||.")
 
