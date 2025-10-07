@@ -380,4 +380,7 @@ class QuizCog(commands.Cog, name="QuizCog"):
 
 # ── export ────────────────────────────────────────────────────────────────────
 async def setup(bot):
-    await bot.add_cog(QuizCog(bot))
+    # Empêche un double ajout si reload/bug réseau
+    if bot.get_cog("QuizCog") is None:
+        from commands.quiz_cog import QuizCog  # si défini plus haut c'est déjà importé
+        await bot.add_cog(QuizCog(bot))
