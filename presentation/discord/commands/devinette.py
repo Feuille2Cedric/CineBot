@@ -12,7 +12,7 @@ class DevinetteCmd(commands.Cog):
             query = """
             SELECT category, genre, release_date, rating, franchise
             FROM question_metadata
-            ORDER BY RANDOM() LIMIT 4;
+            ORDER BY RANDOM() LIMIT 20;  -- On prend plus de films pour garantir une meilleure diversité
             """
             # Utiliser self.bot.pool pour interagir avec la base de données
             movies = await self.bot.pool.fetch(query)
@@ -32,7 +32,7 @@ class DevinetteCmd(commands.Cog):
                 "genre",   # Genre spécifique
             ])
 
-            # Choisir la bonne question et la bonne réponse
+            # Sélectionner la bonne question et la bonne réponse
             if question_type == "oldest":
                 # Trouver le film le plus vieux
                 oldest_movie = min(movies, key=lambda x: x['release_date'])
@@ -48,8 +48,20 @@ class DevinetteCmd(commands.Cog):
             elif question_type == "genre":
                 # Choisir un genre spécifique (ex: Comédie)
                 genre = random.choice(["Comédie", "Drame", "Action", "Animation", "Science-Fiction"])
+
+                # Filtrer les films par genre, mais éviter de sélectionner plusieurs films du même genre
                 genre_movies = [movie for movie in movies if genre in movie['genre']]
-                correct_answer = random.choice(genre_movies)['franchise']  # Compare la franchise pour la réponse
+                if len(genre_movies) < 4:
+                    # Si moins de 4 films du genre choisi, on peut prendre d'autres genres
+                    remaining_movies = [movie for movie in movies if genre not in movie['genre']]
+                    while len(genre_movies) < 4 and remaining_movies:
+                        genre_movies.append(remaining_movies.pop())
+
+                # Sélectionner 4 films sans doublon de genre
+                random.shuffle(genre_movies)
+                genre_movies = genre_movies[:4]
+                
+                correct_answer = genre_movies[0]['franchise']  # On prend le premier film comme bonne réponse
                 question = f"Parmi ces films, lequel appartient au genre {genre} ?"
 
             print(f"Question posée : {question}")  # Log de la question générée
@@ -59,15 +71,12 @@ class DevinetteCmd(commands.Cog):
 
             # Ajouter les réactions avec les films
             options = []
-            for idx, movie in enumerate(movies, start=1):
+            for idx, movie in enumerate(genre_movies, start=1):
                 options.append(f"{idx}. {movie['franchise']}")  # Nom du film pour chaque option
             options_text = "\n".join(options)
 
             # Envoyer les options (réponses possibles) après la question
             await msg.edit(content=f"{question}\n\n{options_text}")
-
-            # Envoyer la bonne réponse en spoiler après les options
-            await ctx.send(f"**La bonne réponse est :** ||{correct_answer}||")
 
             # Réactions pour chaque film
             for idx in range(4):
@@ -81,7 +90,7 @@ class DevinetteCmd(commands.Cog):
 
             # Vérifier la réponse
             answer_index = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'].index(str(reaction.emoji)) + 1
-            if movies[answer_index - 1]['franchise'] == correct_answer:
+            if genre_movies[answer_index - 1]['franchise'] == correct_answer:
                 await ctx.send("Bravo, tu as trouvé la bonne réponse ! 🎉")
             else:
                 await ctx.send(f"Dommage, la bonne réponse était : ||{correct_answer}||.")
