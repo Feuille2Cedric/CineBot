@@ -26,6 +26,10 @@ class DevinetteCmd(commands.Cog):
             print(f"Films récupérés : {movies}")  # Log des films récupérés
 
             # Sélectionner 4 films aléatoires parmi ceux récupérés
+            if len(movies) < 4:
+                await ctx.send("Il n'y a pas assez de films dans la base de données pour poser la question.")
+                return
+
             selected_movies = random.sample(movies, 4)
 
             # Générer une question aléatoire
@@ -65,6 +69,11 @@ class DevinetteCmd(commands.Cog):
                     genre_movies = [random.choice([movie for movie in movies if genre in movie['genre']])]
                     selected_movies = random.sample([movie for movie in movies if genre in movie['genre']], 4)
 
+                # Vérification si genre_movies contient un film et si la liste est non vide
+                if len(genre_movies) == 0:
+                    await ctx.send(f"Il n'y a pas de film du genre {genre} dans les options.")
+                    return
+
                 # Mélanger les films pour ajouter de la diversité
                 random.shuffle(selected_movies)
                 genre_movies = genre_movies[:1]
@@ -94,11 +103,11 @@ class DevinetteCmd(commands.Cog):
             for idx in range(4):
                 await msg.add_reaction(f"{idx+1}\u20e3")  # Emoji 1️⃣, 2️⃣, 3️⃣, 4️⃣
 
-            # Attendre la réponse (mais sans bloquer les autres commandes)
+            # Attendre la réponse
             def check(reaction, user):
                 return user == ctx.author and str(reaction.emoji) in ['1️⃣', '2️⃣', '3️⃣', '4️⃣']
 
-            # Attendre la réaction sans bloquer la suite
+            # Attendre la réaction
             reaction = await self.bot.wait_for('reaction_add', check=check)
 
             # Vérifier la réponse
