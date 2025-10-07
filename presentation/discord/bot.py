@@ -12,6 +12,14 @@ class QuizBot(commands.Bot):
         self.pool = await create_pool()
         await ensure_schema(self.pool)
 
+        # Test connexion DB (pour vérifier que ça marche)
+        try:
+            async with self.pool.acquire() as conn:
+                result = await conn.fetch("SELECT 1")
+                print("Base de données connectée !")
+        except Exception as e:
+            print(f"Erreur de connexion à la base de données : {e}")
+        
         # DI
         self.repos = {
             "questions": PgQuestionRepo(self.pool),
@@ -30,6 +38,7 @@ class QuizBot(commands.Bot):
         await self.load_extension("presentation.discord.commands.annonce_nouveautes")
         await self.load_extension("presentation.discord.commands.aide")
         await self.load_extension("presentation.discord.commands.devinette")
+
 
     async def on_ready(self):
         print(f"[READY] Connecté en tant que {self.user}")
