@@ -14,7 +14,6 @@ class DevinetteCmd(commands.Cog):
             FROM question_metadata
             ORDER BY RANDOM() LIMIT 4;
             """
-            # Utiliser self.bot.pool pour interagir avec la base de données
             movies = await self.bot.pool.fetch(query)
 
             # Si aucun film n'est récupéré
@@ -56,7 +55,7 @@ class DevinetteCmd(commands.Cog):
             # Envoyer la question
             msg = await ctx.send(question)
 
-            # Réactions pour chaque film
+            # Réactions pour chaque film (vérifier qu'on ajoute bien 4 réactions)
             for idx, movie in enumerate(movies, start=1):
                 await msg.add_reaction(f"{idx}\u20e3")  # Emoji 1️⃣, 2️⃣, 3️⃣...
 
