@@ -10,7 +10,7 @@ class DevinetteCmd(commands.Cog):
         try:
             # Choisir 4 films au hasard avec leurs métadonnées
             query = """
-            SELECT category, genre, release_date, franchise
+            SELECT category, genre, release_date, rating, franchise
             FROM question_metadata
             ORDER BY RANDOM() LIMIT 20;  -- On prend plus de films pour garantir une meilleure diversité
             """
@@ -32,6 +32,9 @@ class DevinetteCmd(commands.Cog):
                 "genre",   # Genre spécifique
             ])
 
+            # Initialiser genre_movies
+            genre_movies = []
+
             # Sélectionner la bonne question et la bonne réponse
             if question_type == "oldest":
                 # Trouver le film le plus vieux
@@ -51,6 +54,7 @@ class DevinetteCmd(commands.Cog):
 
                 # Filtrer les films par genre, mais éviter de sélectionner plusieurs films du même genre
                 genre_movies = [movie for movie in movies if genre in movie['genre']]
+                
                 if len(genre_movies) < 4:
                     # Si moins de 4 films du genre choisi, on peut prendre d'autres genres
                     remaining_movies = [movie for movie in movies if genre not in movie['genre']]
