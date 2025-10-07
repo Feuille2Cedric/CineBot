@@ -12,7 +12,7 @@ class DevinetteCmd(commands.Cog):
             query = """
             SELECT category, genre, release_date, franchise
             FROM question_metadata
-            ORDER BY RANDOM() LIMIT 20;  -- On prend plus de films pour garantir une meilleure diversité
+            ORDER BY RANDOM() LIMIT 20;
             """
             # Utiliser self.bot.pool pour interagir avec la base de données
             movies = await self.bot.pool.fetch(query)
@@ -60,25 +60,24 @@ class DevinetteCmd(commands.Cog):
                 # Choisir un genre spécifique (ex: Comédie)
                 genre = random.choice(["Comédie", "Drame", "Action", "Animation", "Science-Fiction"])
 
-                # Filtrer les films par genre
+                # Filtrer les films par genre, mais s'assurer qu'on a bien 1 film du genre choisi
                 genre_movies = [movie for movie in selected_movies if genre in movie['genre']]
 
-                # Si on a moins de 1 film du genre parmi les 4 films, on doit prendre un film de ce genre
+                # Si on a moins de 1 film du genre parmi les 4 films, on doit ajouter un film de ce genre
                 if len(genre_movies) == 0:
-                    # Compléter avec des films d'autres genres
                     genre_movies = [random.choice([movie for movie in movies if genre in movie['genre']])]
-                    selected_movies = random.sample([movie for movie in movies if genre in movie['genre']], 4)
-
-                # Vérification si genre_movies contient un film et si la liste est non vide
-                if len(genre_movies) == 0:
-                    await ctx.send(f"Il n'y a pas de film du genre {genre} dans les options.")
-                    return
+                    remaining_movies = [movie for movie in selected_movies if genre not in movie['genre']]
+                    while len(genre_movies) < 4 and remaining_movies:
+                        genre_movies.append(remaining_movies.pop())
 
                 # Mélanger les films pour ajouter de la diversité
-                random.shuffle(selected_movies)
-                genre_movies = genre_movies[:1]
+                random.shuffle(genre_movies)
+                genre_movies = genre_movies[:1]  # Nous voulons seulement un film du genre choisi
 
-                # La bonne réponse est le film du genre choisi
+                # Ajouter des films d'autres genres pour compléter
+                remaining_movies = [movie for movie in selected_movies if genre not in movie['genre']]
+                genre_movies += random.sample(remaining_movies, 3)
+
                 correct_answer = genre_movies[0]['franchise']
                 question = f"Parmi ces films, lequel appartient au genre {genre} ?"
 
@@ -89,7 +88,7 @@ class DevinetteCmd(commands.Cog):
 
             # Ajouter les réactions avec les films
             options = []
-            for idx, movie in enumerate(selected_movies, start=1):
+            for idx, movie in enumerate(genre_movies, start=1):
                 options.append(f"{idx}. {movie['franchise']}")  # Nom du film pour chaque option
             options_text = "\n".join(options)
 
