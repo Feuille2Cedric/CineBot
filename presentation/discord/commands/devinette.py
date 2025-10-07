@@ -14,6 +14,7 @@ class DevinetteCmd(commands.Cog):
             FROM question_metadata
             ORDER BY RANDOM() LIMIT 4;
             """
+            # Utiliser self.bot.pool pour interagir avec la base de données
             movies = await self.bot.pool.fetch(query)
 
             # Si aucun film n'est récupéré
@@ -31,6 +32,7 @@ class DevinetteCmd(commands.Cog):
                 "genre",   # Genre spécifique
             ])
 
+            # Choisir la bonne question et la bonne réponse
             if question_type == "oldest":
                 # Trouver le film le plus vieux
                 oldest_movie = min(movies, key=lambda x: x['release_date'])
@@ -55,9 +57,18 @@ class DevinetteCmd(commands.Cog):
             # Envoyer la question
             msg = await ctx.send(question)
 
-            # Réactions pour chaque film (vérifier qu'on ajoute bien 4 réactions)
+            # Ajouter les réactions avec les films
+            options = []
             for idx, movie in enumerate(movies, start=1):
-                await msg.add_reaction(f"{idx}\u20e3")  # Emoji 1️⃣, 2️⃣, 3️⃣...
+                options.append(f"{idx}. {movie['franchise']}")  # Nom du film pour chaque option
+            options_text = "\n".join(options)
+
+            # Envoyer les options (réponses possibles) après la question
+            await msg.edit(content=f"{question}\n\n{options_text}")
+
+            # Réactions pour chaque film
+            for idx in range(4):
+                await msg.add_reaction(f"{idx+1}\u20e3")  # Emoji 1️⃣, 2️⃣, 3️⃣, 4️⃣
 
             # Attendre la réponse
             def check(reaction, user):
@@ -69,8 +80,10 @@ class DevinetteCmd(commands.Cog):
             answer_index = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'].index(str(reaction.emoji)) + 1
             if movies[answer_index - 1]['franchise'] == correct_answer:
                 await ctx.send("Bravo, tu as trouvé la bonne réponse ! 🎉")
+                # Envoyer la réponse correcte sous forme de spoiler
+                await ctx.send(f"La bonne réponse était : ||{correct_answer}||")
             else:
-                await ctx.send(f"Dommage, la bonne réponse était : le film **{movies[correct_answer - 1]['franchise']}**.")
+                await ctx.send(f"Dommage, la bonne réponse était : ||{correct_answer}||.")
 
         except Exception as e:
             print(f"Erreur dans la commande !devinette: {e}")
