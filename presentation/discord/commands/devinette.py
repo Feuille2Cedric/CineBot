@@ -23,7 +23,7 @@ class DevinetteCmd(commands.Cog):
                 print("Aucun film récupéré depuis la base de données.")
                 return
 
-            print(f"Films récupérés : {movies}")  # Log de films récupérés
+            print(f"Films récupérés : {movies}")  # Log des films récupérés
 
             # Générer une question aléatoire
             question_type = random.choice([
@@ -69,6 +69,9 @@ class DevinetteCmd(commands.Cog):
                 question = f"Parmi ces films, lequel appartient au genre {genre} ?"
 
             print(f"Question posée : {question}")  # Log de la question générée
+
+            # Envoyer la réponse correcte en spoiler avant la question
+            await ctx.send(f"**La bonne réponse est :** ||{correct_answer}||")
 
             # Envoyer la question
             msg = await ctx.send(question)
