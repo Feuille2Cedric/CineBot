@@ -8,11 +8,11 @@ class DevinetteCmd(commands.Cog):
     @commands.command(name="devinette")
     async def devinette(self, ctx):
         try:
-            # Choisir 4 films au hasard avec leurs métadonnées
+            # Choisir 20 films au hasard avec leurs métadonnées
             query = """
             SELECT category, genre, release_date, franchise
             FROM question_metadata
-            ORDER BY RANDOM() LIMIT 20;  -- On prend plus de films pour garantir une meilleure diversité
+            ORDER BY RANDOM() LIMIT 20;
             """
             # Utiliser self.bot.pool pour interagir avec la base de données
             movies = await self.bot.pool.fetch(query)
@@ -56,14 +56,20 @@ class DevinetteCmd(commands.Cog):
                 # Choisir un genre spécifique (ex: Comédie)
                 genre = random.choice(["Comédie", "Drame", "Action", "Animation", "Science-Fiction"])
 
-                # Filtrer les films par genre parmi les 4 films choisis
+                # Filtrer les films par genre
                 genre_movies = [movie for movie in selected_movies if genre in movie['genre']]
 
-                # Si aucun film du genre n'est trouvé, choisir un film au hasard parmi les 4
-                if not genre_movies:
-                    genre_movies = selected_movies
+                # Si on a moins de 1 film du genre parmi les 4 films, on doit prendre un film de ce genre
+                if len(genre_movies) == 0:
+                    genre_movies = [random.choice([movie for movie in movies if genre in movie['genre']])]
+                    selected_movies = random.sample([movie for movie in movies if genre in movie['genre']], 4)
 
-                correct_answer = genre_movies[0]['franchise']  # Le premier film choisi comme bonne réponse
+                # Mélanger les films pour ajouter de la diversité
+                random.shuffle(selected_movies)
+                genre_movies = genre_movies[:1]
+
+                # La bonne réponse est le film du genre choisi
+                correct_answer = genre_movies[0]['franchise']
                 question = f"Parmi ces films, lequel appartient au genre {genre} ?"
 
             print(f"Question posée : {question}")  # Log de la question générée
