@@ -29,6 +29,7 @@ class QuizBot(commands.Bot):
         await self.load_extension("presentation.discord.commands.sr")
         await self.load_extension("presentation.discord.commands.annonce_nouveautes")
         await self.load_extension("presentation.discord.commands.aide")
+        await self.load_extension("presentation.discord.commands.devinette")
 
     async def on_ready(self):
         print(f"[READY] Connecté en tant que {self.user}")
