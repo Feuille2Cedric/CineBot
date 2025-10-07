@@ -10,7 +10,7 @@ class DevinetteCmd(commands.Cog):
         try:
             # Choisir 4 films au hasard avec leurs métadonnées
             query = """
-            SELECT category, genre, release_date, rating, franchise
+            SELECT category, genre, release_date, franchise
             FROM question_metadata
             ORDER BY RANDOM() LIMIT 20;  -- On prend plus de films pour garantir une meilleure diversité
             """
