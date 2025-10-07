@@ -18,6 +18,13 @@ class DevinetteCmd(commands.Cog):
         """
         movies = await self.bot.db.fetch(query)
 
+        print(f"Films récupérés : {movies}")  # Affiche les films récupérés
+
+        # Vérifier si des films sont récupérés
+        if not movies:
+            await ctx.send("Aucun film n'a été récupéré, vérifier la base de données.")
+            return
+
         # Générer une question aléatoire
         question_type = random.choice([
             "oldest",  # Le plus vieux
@@ -44,6 +51,8 @@ class DevinetteCmd(commands.Cog):
             correct_answer = random.choice(genre_movies)['id']
             question = f"Parmi ces films, lequel appartient au genre {genre} ?"
 
+        print(f"Question posée : {question}")  # Affiche la question générée
+
         # Envoyer la question
         msg = await ctx.send(question)
 
@@ -63,7 +72,6 @@ class DevinetteCmd(commands.Cog):
             await ctx.send("Bravo, tu as trouvé la bonne réponse ! 🎉")
         else:
             await ctx.send(f"Dommage, la bonne réponse était : le film **{movies[correct_answer - 1]['question']}**.")
-        
 
 async def setup(bot):
     if bot.get_cog("DevinetteCmd") is None:
