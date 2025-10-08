@@ -1,19 +1,21 @@
 # 🎬 CineBot – Quiz Cinéma Discord
 
-CineBot est un bot Discord asynchrone qui propose chaque jour un quiz cinéma, gère les scores, le classement, et permet à la communauté de proposer de nouvelles questions.  
-Il utilise une base de données PostgreSQL pour stocker toutes les données.
+CineBot est un bot Discord asynchrone qui propose des quiz cinéma interactifs, gère les scores, les classements, et permet à la communauté de proposer de nouvelles questions.
+Il utilise une base de données PostgreSQL pour stocker toutes les données et a récemment subi une **refonte complète du code** pour améliorer l'expérience utilisateur.
 
 ---
 
 ## 🚀 Fonctionnalités
 
-- Quiz cinéma quotidien avec 5 questions aléatoires
-- Gestion automatique du jour du quiz
-- Classements quotidien, hebdomadaire, mensuel et total
-- Commande de profil personnel
-- Propositions de questions par la communauté, avec validation par réaction
-- 100% base de données PostgreSQL (plus de fichiers JSON)
-- Compatible Railway/Nixpacks
+* Quiz cinéma quotidien avec 5 questions aléatoires
+* Devinettes interactives : choisissez parmi 4 films et trouvez la bonne réponse cachée en spoiler
+* Gestion automatique du jour du quiz
+* Classements quotidien, hebdomadaire, mensuel et global
+* Commande de profil personnel
+* Propositions de questions par la communauté, avec validation par réaction
+* 100% base de données PostgreSQL (plus de fichiers JSON)
+* Refonte du code pour une meilleure stabilité et nouvelles fonctionnalités
+* Compatible Railway/Nixpacks
 
 ---
 
@@ -42,6 +44,8 @@ DISCORD_TOKEN=TON_TOKEN_DISCORD
 PROPOSAL_CHANNEL_ID=123456789012345678
 VALIDATED_CHANNEL_ID=123456789012345678
 COMMANDS_CHANNEL_ID=123456789012345678
+UPDATE_CHANNEL_ID=123456789012345678
+QUIZ_ROLE_ID=123456789012345678
 HOUR_QUESTIONS_DAILY=19
 MINUTE_QUESTIONS_DAILY=42
 CHECKS_REQUIRED=1
@@ -59,41 +63,47 @@ python main.py
 
 ## 📋 Commandes principales
 
-| Commande      | Description                                                |
-|---------------|-----------------------------------------------------------|
-| `!q`          | Affiche une question aléatoire (salon de commandes)       |
-| `!sp`         | Affiche ton profil et tes scores                          |
-| `!sr`         | Affiche le classement hebdomadaire                        |
-| `!propose`    | Propose une question au format `question | réponse`       |
+| Commande              | Description                                                                       |          |
+| --------------------- | --------------------------------------------------------------------------------- | -------- |
+| `!q`                  | Affiche une question cinéma aléatoire (salon de commandes)                        |          |
+| `!sp`                 | Affiche ton profil et tes scores                                                  |          |
+| `!sr`                 | Affiche le classement hebdomadaire                                                |          |
+| `!sr alltime`         | Affiche le classement global                                                      |          |
+| `!propose`            | Propose une question au format `question                                          | réponse` |
+| `!devinette`          | Lance une devinette interactive sur un film avec 4 propositions et réponse cachée |          |
+| `!aide`               | Affiche l'aide et les commandes principales                                       |          |
+| `!annonce_nouveautes` | Envoie une annonce des nouvelles fonctionnalités du bot                           |          |
 
 ---
 
 ## 💡 Proposer une question
 
 Dans le salon de propositions, tu peux :
-- Utiliser la commande :  
+
+* Utiliser la commande :
 
 ```bash
 !propose Quelle année est sorti "Le Parrain" ? | 1972
 ```
 
-- Ou écrire directement :
+* Ou écrire directement :
 
 ```bash
 Q: Quel acteur joue Neo dans Matrix ?
 R: ||Keanu Reeves||
 ```
 
-- Une réaction ✅ permet de valider l’ajout dans la base (nombre de validations configurable).
+* Une réaction ✅ permet de valider l’ajout dans la base (nombre de validations configurable).
 
 ---
 
 ## 🗃️ Structure de la base de données
 
-- **questions** : stocke toutes les questions/réponses
-- **scores_daily** : scores par utilisateur et par jour
-- **day_count** : numéro du jour courant du quiz
-- **messages_jour** : messages personnalisés pour certains jours
+* **questions** : stocke toutes les questions/réponses
+* **question_metadata** : stocke les films pour les devinettes (genre, année, franchise)
+* **scores_daily** : scores par utilisateur et par jour
+* **day_count** : numéro du jour courant du quiz
+* **messages_jour** : messages personnalisés pour certains jours
 
 ---
 
@@ -109,7 +119,7 @@ R: ||Keanu Reeves||
 
 ## 🧑‍💻 Contribuer
 
-Les contributions sont les bienvenues !  
+Les contributions sont les bienvenues !
 N’hésite pas à ouvrir une issue ou une pull request pour toute suggestion ou correction.
 
 ---
@@ -122,8 +132,10 @@ MIT
 
 ## 🙏 Remerciements
 
-- [discord.py](https://github.com/Rapptz/discord.py)
-- [asyncpg](https://github.com/MagicStack/asyncpg)
-- Railway pour l’hébergement facile
+* [discord.py](https://github.com/Rapptz/discord.py)
+* [asyncpg](https://github.com/MagicStack/asyncpg)
+* Railway pour l’hébergement facile
+
+---
 
 **Bon quiz ! 🎬🍿**
